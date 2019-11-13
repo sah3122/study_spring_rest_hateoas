@@ -10,6 +10,8 @@ import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -25,13 +27,22 @@ public class PersonController {
 
         Person person = personService.findOne(id);
         person.add(new Link("http://" +  host + "/api/persons/" + person.getId()).withRel("self2"));
+        Link link = WebMvcLinkBuilder.linkTo(PersonController.class).withRel("person");
+        Link selflink = WebMvcLinkBuilder.linkTo(PersonController.class).slash("persons").slash(person.getId()).withSelfRel();
+        person.add(link);
+        person.add(selflink);
 
         return ResponseEntity.ok(person);
     }
 
     @GetMapping("/persons")
     public ResponseEntity getPersonList() {
-        return ResponseEntity.of(null);
+        List<Person> personList = personService.findAll();
+        personList.forEach(person -> {
+            Link selflink = WebMvcLinkBuilder.linkTo(PersonController.class).slash("persons").slash(person.getId()).withSelfRel();
+            person.add(selflink);
+        });
+        return ResponseEntity.ok(personList);
     }
 
     @PostMapping("/persons")
@@ -44,7 +55,11 @@ public class PersonController {
 
     @PutMapping("/persons")
     public ResponseEntity updatePerson(@RequestBody Person person) {
-        return ResponseEntity.of(null);
+        Person persons = personService.updatePerson(person.getId(), person.getName(), person.getAge());
+
+        Link selflink = WebMvcLinkBuilder.linkTo(PersonController.class).slash("persons").slash(person.getId()).withSelfRel();
+        persons.add(selflink);
+        return ResponseEntity.ok(persons);
     }
 
     @DeleteMapping("/persons/{id}")

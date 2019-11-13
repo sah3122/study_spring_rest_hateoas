@@ -1,4 +1,4 @@
-GET http://localhost:8080/api/persons/2
+GET http://localhost:8080/api/persons/1
 Accept: application/json
 
 ###
@@ -9,6 +9,22 @@ Content-Type: application/json
 {
   "name" : "dongchul",
   "age" : 10
+}
+
+###
+
+GET http://localhost:8080/api/persons
+Accept: application/json
+
+###
+
+PUT http://localhost:8080/api/persons
+Content-Type: application/json
+
+{
+  "id" : 1,
+  "name" : "dongchul",
+  "age" : 11
 }
 
 ###
