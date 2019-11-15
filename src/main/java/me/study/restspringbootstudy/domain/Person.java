@@ -13,7 +13,7 @@ import javax.persistence.Id;
 @Entity
 @Getter @Setter
 @NoArgsConstructor
-public class Person extends RepresentationModel<Person> {
+public class Person{
 
     @Id
     @GeneratedValue

@@ -2,6 +2,7 @@ package me.study.restspringbootstudy.service;
 
 import lombok.RequiredArgsConstructor;
 import me.study.restspringbootstudy.domain.Person;
+import me.study.restspringbootstudy.dto.PersonDto;
 import me.study.restspringbootstudy.repository.PersonRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +16,16 @@ public class PersonService {
 
     private final PersonRepository personRepository;
 
-    public Person findOne(Long id) {
+    public PersonDto findOne(Long id) {
         Optional<Person> person = personRepository.findById(id);
+        Person findPerson = person.orElseThrow(() -> new RuntimeException());
+        PersonDto personDto = PersonDto.builder()
+                .age(findPerson.getAge())
+                .name(findPerson.getName())
+                .build();
 
-        return person.orElseThrow(() -> new RuntimeException());
+
+        return personDto;
     }
 
     public List<Person> findByName(String name) {

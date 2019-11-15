@@ -2,6 +2,7 @@ package me.study.restspringbootstudy.controller;
 
 import lombok.RequiredArgsConstructor;
 import me.study.restspringbootstudy.domain.Person;
+import me.study.restspringbootstudy.dto.PersonDto;
 import me.study.restspringbootstudy.service.PersonService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.Link;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,7 +27,7 @@ public class PersonController {
     @GetMapping("/persons/{id}")
     public ResponseEntity getPerson(@PathVariable(name = "id") Long id) {
 
-        Person person = personService.findOne(id);
+        PersonDto person = personService.findOne(id);
         person.add(new Link("http://" +  host + "/api/persons/" + person.getId()).withRel("self2"));
         Link link = WebMvcLinkBuilder.linkTo(PersonController.class).withRel("person");
         Link selflink = WebMvcLinkBuilder.linkTo(PersonController.class).slash("persons").slash(person.getId()).withSelfRel();
@@ -38,28 +40,29 @@ public class PersonController {
     @GetMapping("/persons")
     public ResponseEntity getPersonList() {
         List<Person> personList = personService.findAll();
-        personList.forEach(person -> {
+        List<PersonDto> personDtoList = personList.stream().map(PersonDto::new).collect(Collectors.toList());
+        personDtoList.forEach(person -> {
             Link selflink = WebMvcLinkBuilder.linkTo(PersonController.class).slash("persons").slash(person.getId()).withSelfRel();
             person.add(selflink);
         });
-        return ResponseEntity.ok(personList);
+        return ResponseEntity.ok(personDtoList);
     }
 
     @PostMapping("/persons")
-    public ResponseEntity createPerson(@RequestBody Person person) {
-        personService.save(person);
-        person.add(new Link("http://" +  host + "/api/persons/" + person.getId()));
+    public ResponseEntity createPerson(@RequestBody PersonDto personDto) {
+        personService.save(personDto.toPersonEntity());
+        personDto.add(new Link("http://" +  host + "/api/persons/" + personDto.getId()));
 
-        return ResponseEntity.ok(person);
+        return ResponseEntity.ok(personDto);
     }
 
     @PutMapping("/persons")
-    public ResponseEntity updatePerson(@RequestBody Person person) {
-        Person persons = personService.updatePerson(person.getId(), person.getName(), person.getAge());
-
-        Link selflink = WebMvcLinkBuilder.linkTo(PersonController.class).slash("persons").slash(person.getId()).withSelfRel();
-        persons.add(selflink);
-        return ResponseEntity.ok(persons);
+    public ResponseEntity updatePerson(@RequestBody PersonDto personDto) {
+        Person persons = personService.updatePerson(personDto.getId(), personDto.getName(), personDto.getAge());
+        personDto = new PersonDto(persons);
+        Link selflink = WebMvcLinkBuilder.linkTo(PersonController.class).slash("persons").slash(personDto.getId()).withSelfRel();
+        personDto.add(selflink);
+        return ResponseEntity.ok(personDto);
     }
 
     @DeleteMapping("/persons/{id}")
